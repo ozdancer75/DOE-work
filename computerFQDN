@@ -1,0 +1,17 @@
+$Retired = @()
+$domains = (Get-ADForest).Domains
+foreach($domain in $domains){
+$OUList = Get-ADOrganizationalUnit -filter 'name -like "retired"' -server $domain
+foreach($OU in $OUList){
+$RetiredComputers = get-adcomputer -server $domain -searchBase "$($OU.DistinguishedName)" -filter 'Name -like "*MS*"'
+foreach($computer in $RetiredComputers){
+      $computerDetails = New-Object -TypeName psobject
+      $computerDetails | Add-Member -MemberType NoteProperty -Name Domain -Value $domain -force
+      $computerDetails | Add-Member -MemberType NoteProperty -Name OU -Value $($OU.DistinguishedName) -force
+      $computerDetails | Add-Member -MemberType NoteProperty -Name ComputerName -Value $($Computer.name) -force
+      $computerDetails | Add-Member -MemberType NoteProperty -Name Enabled -Value $($Computer.enabled) -force
+    $Retired += $computerDetails
+}
+}
+}
+$Retired | export-csv -path "C:\temp\retired.csv"
